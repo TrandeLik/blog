@@ -20,8 +20,8 @@
       <div class='offset-md-2 col-md-8 col-12'>
         <div class='card'>
           <div class='card-body'>
-            <h3>$article[1]</h3><br>
-            <p>".substr($article[2], 0, 150)."<p><br>
+            <h3>".htmlspecialchars($article[1], ENT_QUOTES, 'UTF-8')."</h3><br>
+            <p>".substr(htmlspecialchars($article[2], ENT_QUOTES, 'UTF-8'), 0, 150)."<p><br>
             <form action='article.php' method='POST'>
                 <input type='hidden' name='id' value='$article[0]'>
                 <input type='submit' value='Читать продолжение' class='btn btn-primary'>

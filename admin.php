@@ -7,12 +7,17 @@
 </head>
 <body style="margin:0; padding:0">
 <?php
+
+    function BlockSQLInjection($str){
+      return str_replace(array("'",'"'), array("&quot;","&quot;"), $str);
+    }
+    
     session_start();
     if (isset($_SESSION['auth']) and $_SESSION['auth'] == true){
         $connection = mysqli_connect('127.0.0.1', 'root', '');
         mysqli_select_db($connection, 'blog');
         mysqli_set_charset($connection, 'utf8');
-        if (isset($_POST['del_id'])){
+        if (isset($_POST['del_id']) and is_numeric($_POST['del_id'])){
             mysqli_query($connection,'DELETE FROM `articles` WHERE `id` = '.$_POST["del_id"].';');
             mysqli_query($connection,'DELETE FROM `comments` WHERE `article_id` = '.$_POST["del_id"].';');
         }
@@ -26,8 +31,8 @@
                   <div class='offset-md-2 col-md-8 col-12'>
                   <div class='card'>
                     <div class='card-body'>
-                        <h3>$article[1]</h3><br>
-                        <p>".substr($article[2], 0, 150)."<p><br>
+                        <h3>".htmlspecialchars($article[1], ENT_QUOTES, 'UTF-8')."</h3><br>
+                        <p>".htmlspecialchars(substr($article[2], 0, 150), ENT_QUOTES, 'UTF-8')."<p><br>
                         <form action='article.php' method='POST'>
                             <input type='hidden' name='id' value='$article[0]'>
                             <input type='submit' value='Читать продолжение' class='btn btn-primary'>
@@ -46,6 +51,16 @@
                   </div>
                 </li><br>";
         }
+        echo "
+          <div class='row'>
+          <div class='offset-md-2 col-md-8 col-12'>
+              <form action = 'edit.php' method = 'POST'>
+                  <input type='hidden' name = 'newPost' value ='true'>
+                  <input type='submit' value='Создать новый пост' class = 'btn btn-success' style = 'width: 100%'>
+              </form>
+          </div>
+          </div>
+        ";
         echo "</ul>";
         echo "<a class='btn btn-primary' href='login.php?exit=true'>Выход</a>";
     }else{

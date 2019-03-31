@@ -7,16 +7,21 @@
 </head>
 <body>
 <?php
-  if (isset($_POST["id"])){
+
+  function BlockSQLInjection($str){
+    return str_replace(array("'",'"'), array("&quot;","&quot;"), $str);
+  }
+
+  if (isset($_POST["id"]) and is_numeric($_POST["id"])){
       $connection = mysqli_connect('127.0.0.1', 'root', '');
       mysqli_select_db($connection, 'blog');
       mysqli_set_charset($connection, 'utf8');
-      $query_result_articles = mysqli_query($connection, 'SELECT * FROM `articles` WHERE `id` ='.$_POST["id"].';');
+      $query_result_articles = mysqli_query($connection, 'SELECT * FROM `articles` WHERE `id` ='.BlockSQLInjection($_POST["id"]).';');
       $article = mysqli_fetch_all($query_result_articles)[0];
       echo "
         <div class='jumbotron'>
-          <h3 class='display-4'>$article[1]</h3>
-          <p class='lead' style='width: 100%'>$article[2]<p>
+          <h3 class='display-4'>".htmlspecialchars($article[1], ENT_QUOTES, 'UTF-8')."</h3>
+          <p class='lead' style='width: 100%'>".htmlspecialchars($article[2], ENT_QUOTES, 'UTF-8')."</p>
         </div>
         ";
       echo "
@@ -32,8 +37,8 @@
 
       if ((isset($_POST["name"])) and (isset($_POST["comment"]))){
           if (($_POST["name"] != '') and ($_POST["comment"] != '')){
-            $name = $_POST["name"];
-            $textComment = $_POST["comment"];
+            $name = BlockSQLInjection($_POST["name"]);
+            $textComment = BlockSQLInjection($_POST["comment"]);
             mysqli_query($connection, "INSERT INTO `comments` (`article_id`,`email`, `text`) VALUES('{$_POST["id"]}','{$name}','{$textComment}')");
           } else {
               echo "<br>
@@ -42,15 +47,17 @@
         }
       $query_result_comments = mysqli_query($connection, 'SELECT * FROM `comments` WHERE `article_id` ='.$_POST["id"].';');
       $comments = mysqli_fetch_all($query_result_comments);
+      $count = count($comments);
+      echo "<h2>Колличество комментариев: <span class='badge badge-secondary'>$count</span></h2>";
 
       echo '<ul>';
       foreach ($comments as $comment) {
           echo "<li style='list-style-type: none;'>
             <div class='card-header' style='width: 70%;'>
-                <p>$comment[2], $comment[4]:</p>
+                <p>".htmlspecialchars($comment[2], ENT_QUOTES, 'UTF-8').", ".htmlspecialchars($comment[4], ENT_QUOTES, 'UTF-8').":</p>
             </div>
             <div class='card' style='width: 70%; padding-left: 2%;'>
-                <p>$comment[3]</p>
+                <p>".htmlspecialchars($comment[3], ENT_QUOTES, 'UTF-8')."</p>
             </div>
           </li><br>";
       }
